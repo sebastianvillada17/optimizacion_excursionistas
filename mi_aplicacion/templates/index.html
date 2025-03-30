@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimización de Elementos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+<h2 class="text-center">Optimización de Elementos</h2>
+<form id="formulario">
+<div class="mb-3">
+<label>Mínimo de Calorías:</label>
+<input type="number" id="min_calorias" class="form-control" required>
+</div>
+<div class="mb-3">
+<label>Peso Máximo:</label>
+<input type="number" id="peso_maximo" class="form-control" required>
+</div>
+<div id="elementos-container">
+<h4>Elementos</h4>
+<div class="elemento mb-3">
+<input type="text" placeholder="Nombre" class="nombre form-control mb-1" required>
+<input type="number" placeholder="Peso" class="peso form-control mb-1" required>
+<input type="number" placeholder="Calorías" class="calorias form-control mb-1" required>
+</div>
+</div>
+<button type="button" id="agregarElemento" class="btn btn-secondary">Agregar Elemento</button>
+<button type="submit" class="btn btn-primary">Calcular</button>
+</form>
+<h3 class="mt-4">Resultados:</h3>
+<div id="resultado"></div>
+</div>
+
+<script>
+document.getElementById("agregarElemento").addEventListener("click", function() {
+let container = document.getElementById("elementos-container");
+let div = document.createElement("div");
+div.classList.add("elemento", "mb-3");
+div.innerHTML = `
+<input type="text" placeholder="Nombre" class="nombre form-control mb-1" required>
+<input type="number" placeholder="Peso" class="peso form-control mb-1" required>
+<input type="number" placeholder="Calorías" class="calorias form-control mb-1" required>
+`;
+container.appendChild(div);
+});
+
+document.getElementById("formulario").addEventListener("submit", function(event) {
+event.preventDefault();
+let min_calorias = parseFloat(document.getElementById("min_calorias").value);
+let peso_maximo = parseFloat(document.getElementById("peso_maximo").value);
+let elementos = [];
+
+document.querySelectorAll(".elemento").forEach(el => {
+let nombre = el.querySelector(".nombre").value.trim();
+let peso = parseFloat(el.querySelector(".peso").value);
+let calorias = parseFloat(el.querySelector(".calorias").value);
+elementos.push({ nombre, peso, calorias });
+});
+
+fetch("/calcular", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ min_calorias, peso_maximo, elementos })
+})
+.then(response => response.json())
+.then(data => {
+let resultadoDiv = document.getElementById("resultado");
+resultadoDiv.innerHTML = `<p>Mejor peso: ${data.mejor_peso.toFixed(2)} kg</p>
+<p>Calorías totales: ${data.mejor_calorias.toFixed(2)}</p>
+<p>Combinaciones: ${data.mejores_combinaciones.map(c => c.map(e => e.nombre).join(", ")).join(" | ")}</p>`;
+});
+});
+</script>
+</body>
+</html>
